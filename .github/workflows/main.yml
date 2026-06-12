@@ -130,4 +130,4 @@ jobs:
             ${{ github.event.release.body }}
 
             ## Changelog
-            ${{ steps.git_changelog.outputs.changelog }}
+            ${{ steps.git_changelog.outputs.changes }}
