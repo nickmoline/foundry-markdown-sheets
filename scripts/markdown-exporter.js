@@ -320,13 +320,13 @@
    * Main function to export Actor document to Markdown and download it.
    * @param {Actor} actor - The actor document.
    */
-  function exportActorToMarkdown(actor) {
+  async function exportActorToMarkdown(actor) {
     try {
       let markdown = "";
       if (actor.type === "character") {
-        markdown = generatePCMarkdown(actor);
+        markdown = await generatePCMarkdown(actor);
       } else if (actor.type === "npc") {
-        markdown = generateNPCMarkdown(actor);
+        markdown = await generateNPCMarkdown(actor);
       } else {
         ui.notifications.warn(game.i18n.localize("MarkdownSheets.NotifyTypeWarning"));
         return;
@@ -347,7 +347,7 @@
    * @param {Actor} actor - The player character actor.
    * @returns {string} Fully formatted markdown content.
    */
-  function generatePCMarkdown(actor) {
+  async function generatePCMarkdown(actor) {
     const system = actor.system;
     
     // Basic attributes
@@ -506,7 +506,8 @@ ${getSkillsBlock(actor)}
         const typeLabel = getFeatureSource(f);
         const requirement = f.system.requirements ? ` (${f.system.requirements})` : "";
         const uses = f.system.uses?.max ? ` | ${game.i18n.localize("MarkdownSheets.LabelUsage")}: ${f.system.uses.value}/${f.system.uses.max}` : "";
-        md += `\n### ${f.name}\n- **${game.i18n.localize("MarkdownSheets.LabelType")}:** ${typeLabel}${requirement}${uses}\n\n${formatItemDescription(f)}\n`;
+        const enrichedDesc = await formatItemDescription(f, actor);
+        md += `\n### ${f.name}\n- **${game.i18n.localize("MarkdownSheets.LabelType")}:** ${typeLabel}${requirement}${uses}\n\n${enrichedDesc}\n`;
       }
       md += `\n---\n`;
     }
@@ -516,7 +517,7 @@ ${getSkillsBlock(actor)}
     if (hasInventory) {
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelInventory")}\n`;
       
-      const appendInvSection = (titleKey, list) => {
+      const appendInvSection = async (titleKey, list) => {
         if (list.length === 0) return "";
         const title = game.i18n.localize(titleKey);
         let sec = `\n### ${title}\n`;
@@ -528,18 +529,19 @@ ${getSkillsBlock(actor)}
           const props = getItemProperties(i);
           const propsStr = props ? ` | ${game.i18n.localize("MarkdownSheets.LabelProperties")}: ${props}` : "";
           
-          sec += `\n#### ${i.name}${eq}\n- **${game.i18n.localize("MarkdownSheets.LabelQuantity")}:** ${qty} | **${game.i18n.localize("MarkdownSheets.LabelWeight")}:** ${totalWt} lbs${propsStr}\n\n${formatItemDescription(i)}\n`;
+          const enrichedDesc = await formatItemDescription(i, actor);
+          sec += `\n#### ${i.name}${eq}\n- **${game.i18n.localize("MarkdownSheets.LabelQuantity")}:** ${qty} | **${game.i18n.localize("MarkdownSheets.LabelWeight")}:** ${totalWt} lbs${propsStr}\n\n${enrichedDesc}\n`;
         }
         return sec;
       };
       
-      md += appendInvSection("MarkdownSheets.InvWeapons", weaponsList);
-      md += appendInvSection("MarkdownSheets.InvArmorShield", armorList);
-      md += appendInvSection("MarkdownSheets.InvEquipmentGear", equipmentList);
-      md += appendInvSection("MarkdownSheets.InvConsumables", consumablesList);
-      md += appendInvSection("MarkdownSheets.InvTools", toolsList);
-      md += appendInvSection("MarkdownSheets.InvContainers", containersList);
-      md += appendInvSection("MarkdownSheets.InvOtherLoot", lootList);
+      md += await appendInvSection("MarkdownSheets.InvWeapons", weaponsList);
+      md += await appendInvSection("MarkdownSheets.InvArmorShield", armorList);
+      md += await appendInvSection("MarkdownSheets.InvEquipmentGear", equipmentList);
+      md += await appendInvSection("MarkdownSheets.InvConsumables", consumablesList);
+      md += await appendInvSection("MarkdownSheets.InvTools", toolsList);
+      md += await appendInvSection("MarkdownSheets.InvContainers", containersList);
+      md += await appendInvSection("MarkdownSheets.InvOtherLoot", lootList);
       
       md += `\n---\n`;
     }
@@ -583,7 +585,8 @@ ${getSkillsBlock(actor)}
           md += `- **${game.i18n.localize("MarkdownSheets.LabelRange")}:** ${sRange}\n`;
           md += `- **${game.i18n.localize("MarkdownSheets.LabelComponents")}:** ${components}\n`;
           md += `- **${game.i18n.localize("MarkdownSheets.LabelDuration")}:** ${duration}\n\n`;
-          md += `${formatItemDescription(s)}\n`;
+          const enrichedDesc = await formatItemDescription(s, actor);
+          md += `${enrichedDesc}\n`;
         }
       }
       md += `\n---\n`;
@@ -595,10 +598,22 @@ ${getSkillsBlock(actor)}
     if (bio || appearance) {
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelBiographyAppearance")}\n`;
       if (appearance) {
-        md += `\n### ${game.i18n.localize("MarkdownSheets.LabelAppearance")}\n${appearance}\n`;
+        let enrichedAppearance = appearance;
+        try {
+          enrichedAppearance = await TextEditor.enrichHTML(appearance, { relativeTo: actor, async: true });
+        } catch (err) {
+          console.warn("Markdown Sheets | Failed to enrich appearance:", err);
+        }
+        md += `\n### ${game.i18n.localize("MarkdownSheets.LabelAppearance")}\n${htmlToMarkdown(enrichedAppearance)}\n`;
       }
       if (bio) {
-        md += `\n### ${game.i18n.localize("MarkdownSheets.LabelBiography")}\n${htmlToMarkdown(bio)}\n`;
+        let enrichedBio = bio;
+        try {
+          enrichedBio = await TextEditor.enrichHTML(bio, { relativeTo: actor, async: true });
+        } catch (err) {
+          console.warn("Markdown Sheets | Failed to enrich biography:", err);
+        }
+        md += `\n### ${game.i18n.localize("MarkdownSheets.LabelBiography")}\n${htmlToMarkdown(enrichedBio)}\n`;
       }
     }
     
@@ -610,7 +625,7 @@ ${getSkillsBlock(actor)}
    * @param {Actor} actor - The NPC actor.
    * @returns {string} Fully formatted markdown content.
    */
-  function generateNPCMarkdown(actor) {
+  async function generateNPCMarkdown(actor) {
     const system = actor.system;
     
     // Basic attributes
@@ -725,7 +740,8 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     if (traitsList.length > 0) {
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelTraitsPassiveAbilities")}\n`;
       for (const t of traitsList.sort((a, b) => a.name.localeCompare(b.name))) {
-        md += `\n### ${t.name}\n${formatItemDescription(t)}\n`;
+        const enrichedDesc = await formatItemDescription(t, actor);
+        md += `\n### ${t.name}\n${enrichedDesc}\n`;
       }
       md += `\n---\n`;
     }
@@ -736,7 +752,8 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
       for (const a of actionsList.sort((a, b) => a.name.localeCompare(b.name))) {
         const props = getItemProperties(a);
         const propsStr = props ? ` - *${game.i18n.localize("MarkdownSheets.LabelProperties")}: ${props}*\n` : "";
-        md += `\n### ${a.name}\n${propsStr}${formatItemDescription(a)}\n`;
+        const enrichedDesc = await formatItemDescription(a, actor);
+        md += `\n### ${a.name}\n${propsStr}${enrichedDesc}\n`;
       }
       md += `\n---\n`;
     }
@@ -745,7 +762,8 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     if (bonusActionsList.length > 0) {
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelBonusActions")}\n`;
       for (const ba of bonusActionsList.sort((a, b) => a.name.localeCompare(b.name))) {
-        md += `\n### ${ba.name}\n${formatItemDescription(ba)}\n`;
+        const enrichedDesc = await formatItemDescription(ba, actor);
+        md += `\n### ${ba.name}\n${enrichedDesc}\n`;
       }
       md += `\n---\n`;
     }
@@ -754,7 +772,8 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     if (reactionsList.length > 0) {
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelReactions")}\n`;
       for (const r of reactionsList.sort((a, b) => a.name.localeCompare(b.name))) {
-        md += `\n### ${r.name}\n${formatItemDescription(r)}\n`;
+        const enrichedDesc = await formatItemDescription(r, actor);
+        md += `\n### ${r.name}\n${enrichedDesc}\n`;
       }
       md += `\n---\n`;
     }
@@ -765,7 +784,8 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelLegendaryActions")}${legMax}\n`;
       for (const la of legendaryList.sort((a, b) => a.name.localeCompare(b.name))) {
         const cost = la.system.activation?.cost ? ` (${game.i18n.format("MarkdownSheets.LabelCostsActions", { cost: la.system.activation.cost })})` : "";
-        md += `\n### ${la.name}${cost}\n${formatItemDescription(la)}\n`;
+        const enrichedDesc = await formatItemDescription(la, actor);
+        md += `\n### ${la.name}${cost}\n${enrichedDesc}\n`;
       }
       md += `\n---\n`;
     }
@@ -774,7 +794,8 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     if (lairList.length > 0) {
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelLairActions")}\n`;
       for (const la of lairList.sort((a, b) => a.name.localeCompare(b.name))) {
-        md += `\n### ${la.name}\n${formatItemDescription(la)}\n`;
+        const enrichedDesc = await formatItemDescription(la, actor);
+        md += `\n### ${la.name}\n${enrichedDesc}\n`;
       }
       md += `\n---\n`;
     }
@@ -818,7 +839,8 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
           md += `- **${game.i18n.localize("MarkdownSheets.LabelRange")}:** ${sRange}\n`;
           md += `- **${game.i18n.localize("MarkdownSheets.LabelComponents")}:** ${components}\n`;
           md += `- **${game.i18n.localize("MarkdownSheets.LabelDuration")}:** ${duration}\n\n`;
-          md += `${formatItemDescription(s)}\n`;
+          const enrichedDesc = await formatItemDescription(s, actor);
+          md += `${enrichedDesc}\n`;
         }
       }
       md += `\n---\n`;
@@ -827,8 +849,14 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     // Section: Biography
     const bio = system.details?.biography?.value || "";
     if (bio) {
+      let enrichedBio = bio;
+      try {
+        enrichedBio = await TextEditor.enrichHTML(bio, { relativeTo: actor, async: true });
+      } catch (err) {
+        console.warn("Markdown Sheets | Failed to enrich biography:", err);
+      }
       md += `\n## ${game.i18n.localize("MarkdownSheets.LabelBiographyDescription")}\n`;
-      md += `${htmlToMarkdown(bio)}\n`;
+      md += `${htmlToMarkdown(enrichedBio)}\n`;
     }
     
     return md;
@@ -1096,8 +1124,17 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     return `**${game.i18n.localize("MarkdownSheets.LabelSpellcastingAbility")}:** ${abilityLabel} (${game.i18n.localize("MarkdownSheets.LabelSpellSaveDC")}: ${spelldc}, ${game.i18n.localize("MarkdownSheets.LabelSpellAttackBonus")}: ${attackBonus})`;
   }
 
-  function formatItemDescription(item) {
-    const descHtml = item.system.description?.value || "";
+  async function formatItemDescription(item, actor) {
+    let descHtml = item.system.description?.value || "";
+    try {
+      descHtml = await TextEditor.enrichHTML(descHtml, {
+        relativeTo: item,
+        rollData: actor?.getRollData() || item?.getRollData() || {},
+        async: true
+      });
+    } catch (err) {
+      console.warn("Markdown Sheets | Failed to enrich HTML for item:", item.name, err);
+    }
     const mdDesc = htmlToMarkdown(descHtml);
     return mdDesc || `*${game.i18n.localize("MarkdownSheets.LabelNoDescription")}*`;
   }
