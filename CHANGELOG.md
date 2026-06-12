@@ -1,3 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [v0.0.1-alpha] - 2026-06-12
+### :sparkles: New Features
+- [`118548c`](https://github.com/nickmoline/foundry-markdown-sheets/commit/118548c4d1f8896f8387c2287463289e22d7ee0c) - add multilingual localization support for character sheet exports *(commit by [@nickmoline](https://github.com/nickmoline))*
+- [`7b85b08`](https://github.com/nickmoline/foundry-markdown-sheets/commit/7b85b08cf3c3a6e124fcae592ea77247f0747088) - add automated CHANGELOG.md updates and release packaging to CI workflow *(commit by [@nickmoline](https://github.com/nickmoline))*
+- [`8dbcc18`](https://github.com/nickmoline/foundry-markdown-sheets/commit/8dbcc183c64c5157a368170a887e2808bcca2ad1) - enable gitmojis and ref issue inclusion in changelog generation *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+### :wrench: Chores
+- [`7beff7a`](https://github.com/nickmoline/foundry-markdown-sheets/commit/7beff7abb0bc5e81d6c4ca3fe43d18f95f2dfe63) - update changelog generation workflow to use requarks/changelog-action *(commit by [@nickmoline](https://github.com/nickmoline))*
+- [`3d441d9`](https://github.com/nickmoline/foundry-markdown-sheets/commit/3d441d9f8571d07c55c2d64373b4fca8f8aef498) - checkout target commitish during release workflow execution *(commit by [@nickmoline](https://github.com/nickmoline))*
+- [`4a62346`](https://github.com/nickmoline/foundry-markdown-sheets/commit/4a62346d11e026698a5b24d4e292d55e8e070b54) - fix changelog output variable in CI workflow and reset CHANGELOG.md content *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+[v0.0.1-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.0...v0.0.1-alpha
