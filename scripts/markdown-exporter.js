@@ -32,8 +32,8 @@ function exportActorToMarkdown(actor) {
       return;
     }
     
-    const safeName = actor.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const filename = `${safeName}_sheet.md`;
+    const cleanName = actor.name.replace(/[\\/:*?"<>|]/g, "");
+    const filename = `${cleanName}.md`;
     downloadMarkdown(filename, markdown);
     ui.notifications.info(game.i18n.format("MarkdownSheets.NotifySuccess", { name: actor.name }));
   } catch (error) {
@@ -84,10 +84,14 @@ function generatePCMarkdown(actor) {
   
   const ab = getAbilitiesBlock(actor);
   
+  const imgUrl = getImageUrl(actor);
+  const imgMarkdown = imgUrl ? `![${name}](${imgUrl})\n\n` : "";
+
   // Frontmatter construction
   let md = `---
 name: ${escapeYamlString(name)}
 type: "character"
+image: ${escapeYamlString(imgUrl)}
 species: ${escapeYamlString(species)}
 class: ${escapeYamlString(classLine)}
 background: ${escapeYamlString(background)}
@@ -110,7 +114,7 @@ abilities:
 ---
 
 # ${name}
-*${game.i18n.localize("MarkdownSheets.LabelLevel")} ${totalLevel} ${species} ${classLine} | ${game.i18n.localize("MarkdownSheets.LabelBackground")}: ${background} | ${game.i18n.localize("MarkdownSheets.LabelAlignment")}: ${alignment}*
+${imgMarkdown}*${game.i18n.localize("MarkdownSheets.LabelLevel")} ${totalLevel} ${species} ${classLine} | ${game.i18n.localize("MarkdownSheets.LabelBackground")}: ${background} | ${game.i18n.localize("MarkdownSheets.LabelAlignment")}: ${alignment}*
 
 ## ${game.i18n.localize("MarkdownSheets.LabelCoreStats")}
 - **${game.i18n.localize("MarkdownSheets.LabelAC")}:** ${acVal}
@@ -328,10 +332,14 @@ function generateNPCMarkdown(actor) {
   
   const ab = getAbilitiesBlock(actor);
   
+  const imgUrl = getImageUrl(actor);
+  const imgMarkdown = imgUrl ? `![${name}](${imgUrl})\n\n` : "";
+
   // Frontmatter construction
   let md = `---
 name: ${escapeYamlString(name)}
 type: "npc"
+image: ${escapeYamlString(imgUrl)}
 cr: "${cr}"
 xp: ${xp}
 size: ${escapeYamlString(size)}
@@ -352,7 +360,7 @@ abilities:
 ---
 
 # ${name}
-*${size} ${npcType}, ${alignment}*
+${imgMarkdown}*${size} ${npcType}, ${alignment}*
 
 - **${game.i18n.localize("MarkdownSheets.LabelChallengeRating")}:** ${cr} (${xp} ${game.i18n.localize("MarkdownSheets.LabelXP")})
 - **${game.i18n.localize("MarkdownSheets.LabelAC")}:** ${acVal}${acFormula ? ` ${acFormula}` : ""}
@@ -523,6 +531,14 @@ abilities:
 /* ========================================================================= */
 /* HELPERS                                                                   */
 /* ========================================================================= */
+
+function getImageUrl(actor) {
+  const img = actor.img;
+  if (!img) return "";
+  if (img.startsWith("http://") || img.startsWith("https://")) return img;
+  const cleanImg = img.startsWith("/") ? img.slice(1) : img;
+  return `${window.location.origin}/${cleanImg}`;
+}
 
 function formatMod(mod) {
   if (mod === undefined || mod === null) return "+0";
