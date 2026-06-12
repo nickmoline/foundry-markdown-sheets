@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.1.1] - 2026-06-12
+### :bug: Bug Fixes
+- [`fdb636f`](https://github.com/nickmoline/foundry-markdown-sheets/commit/fdb636f951668f0353a4c7892ded4761286f1561) - strip invalid or non-external links in markdown exporter *(commit by [@nickmoline](https://github.com/nickmoline))*
+- [`177ee28`](https://github.com/nickmoline/foundry-markdown-sheets/commit/177ee28100bf0ccb8b309de67d8df69041633f1a) - remove draft flag from release workflow to ensure proper visibility *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+### :recycle: Refactors
+- [`1f534af`](https://github.com/nickmoline/foundry-markdown-sheets/commit/1f534af1da07c6659eb8c189082a47ad0920330e) - remove ApplicationV1 and ApplicationV2 manual hook registrations and monkey-patching *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+
 ## [v0.1.0] - 2026-06-12
 ### :sparkles: New Features
 - [`80c2baf`](https://github.com/nickmoline/foundry-markdown-sheets/commit/80c2baf533ff18b28e5974554bf4755e40b1207b) - add ability score table and implement robust saving throw calculation in markdown exporter *(commit by [@nickmoline](https://github.com/nickmoline))*
@@ -52,3 +61,4 @@ All notable changes to this project will be documented in this file.
 [v0.0.4]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.3-alpha...v0.0.4
 [v0.0.5]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.4...v0.0.5
 [v0.1.0]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.5...v0.1.0
+[v0.1.1]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.1.0...v0.1.1
