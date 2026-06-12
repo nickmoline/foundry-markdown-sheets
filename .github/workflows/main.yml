@@ -62,11 +62,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
+          useGitmojis: true
+          includeRefIssues: true
+          excludeScopes: 'release'
 
       - name: Commit updated CHANGELOG
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: update CHANGELOG.md for ${{ github.event.release.tag_name }} [skip ci]"
+          commit_message: "docs(release): update CHANGELOG.md for ${{ github.event.release.tag_name }} [skip ci]"
           file_pattern: 'CHANGELOG.md'
 
       # Modify "module.json" with values specific to the release.
