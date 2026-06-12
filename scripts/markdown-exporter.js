@@ -425,6 +425,11 @@ ${imgMarkdown}*${game.i18n.localize("MarkdownSheets.LabelLevel")} ${totalLevel} 
 - **${game.i18n.localize("MarkdownSheets.LabelSenses")}:** ${sensesStr}
 - **${game.i18n.localize("MarkdownSheets.LabelLanguages")}:** ${langStr}
 
+### ${game.i18n.localize("MarkdownSheets.LabelAbilityScores")}
+| STR | DEX | CON | INT | WIS | CHA |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| ${system.abilities?.str?.value ?? 10} (${formatMod(system.abilities?.str?.mod ?? 0)}) | ${system.abilities?.dex?.value ?? 10} (${formatMod(system.abilities?.dex?.mod ?? 0)}) | ${system.abilities?.con?.value ?? 10} (${formatMod(system.abilities?.con?.mod ?? 0)}) | ${system.abilities?.int?.value ?? 10} (${formatMod(system.abilities?.int?.mod ?? 0)}) | ${system.abilities?.wis?.value ?? 10} (${formatMod(system.abilities?.wis?.mod ?? 0)}) | ${system.abilities?.cha?.value ?? 10} (${formatMod(system.abilities?.cha?.mod ?? 0)}) |
+
 ### ${game.i18n.localize("MarkdownSheets.LabelSavingThrows")}
 `;
 
@@ -443,7 +448,8 @@ ${imgMarkdown}*${game.i18n.localize("MarkdownSheets.LabelLevel")} ${totalLevel} 
       for (const [key, abName] of Object.entries(abKeys)) {
         const ability = abilities[key];
         if (ability) {
-          const saveMod = formatMod(ability.save || ability.mod || 0);
+          const saveVal = getAbilitySaveValue(ability, actor);
+          const saveMod = formatMod(saveVal);
           const isProf = ability.proficient ? ` (${game.i18n.localize("DND5E.Proficient")})` : "";
           md += `- **${abName}:** ${saveMod}${isProf}\n`;
         }
@@ -952,11 +958,33 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
       }
       const val = ab.value || 10;
       const mod = formatMod(ab.mod || 0);
-      const saveMod = formatMod(ab.save || ab.mod || 0);
+      const saveVal = getAbilitySaveValue(ab, actor);
+      const saveMod = formatMod(saveVal);
       const isProf = ab.proficient ? ` (${game.i18n.localize("DND5E.Proficient")})` : "";
       result[name] = `${val} (${mod}, Save: ${saveMod}${isProf})`;
     }
     return result;
+  }
+
+  function getAbilitySaveValue(ab, actor) {
+    if (!ab) return 0;
+    if (typeof ab.save === "number") {
+      return ab.save;
+    }
+    if (ab.save && typeof ab.save === "object") {
+      if (typeof ab.save.value === "number") {
+        return ab.save.value;
+      }
+      if (typeof ab.save.total === "number") {
+        return ab.save.total;
+      }
+      if (typeof ab.save.mod === "number") {
+        return ab.save.mod;
+      }
+    }
+    // Fallback to manual calculation
+    const profBonus = actor?.system?.attributes?.prof || 0;
+    return (ab.mod || 0) + (ab.proficient ? profBonus : 0);
   }
 
   function getSkillsBlock(actor) {
