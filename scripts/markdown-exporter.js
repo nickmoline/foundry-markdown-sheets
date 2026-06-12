@@ -9,7 +9,7 @@ Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
   if (actor.type !== "character" && actor.type !== "npc") return;
   
   buttons.unshift({
-    label: "Export Markdown",
+    label: game.i18n.localize("MarkdownSheets.ExportButton"),
     class: "export-markdown-sheet",
     icon: "fas fa-file-markdown",
     onclick: () => exportActorToMarkdown(actor)
@@ -28,17 +28,17 @@ function exportActorToMarkdown(actor) {
     } else if (actor.type === "npc") {
       markdown = generateNPCMarkdown(actor);
     } else {
-      ui.notifications.warn("Exporting to Markdown is only supported for Player Characters and NPCs.");
+      ui.notifications.warn(game.i18n.localize("MarkdownSheets.NotifyTypeWarning"));
       return;
     }
     
     const safeName = actor.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     const filename = `${safeName}_sheet.md`;
     downloadMarkdown(filename, markdown);
-    ui.notifications.info(`Successfully exported character sheet for ${actor.name}!`);
+    ui.notifications.info(game.i18n.format("MarkdownSheets.NotifySuccess", { name: actor.name }));
   } catch (error) {
     console.error("Markdown Exporter | Error exporting actor sheet:", error);
-    ui.notifications.error("An error occurred while exporting the sheet to Markdown. Check console logs.");
+    ui.notifications.error(game.i18n.localize("MarkdownSheets.NotifyError"));
   }
 }
 
@@ -54,7 +54,7 @@ function generatePCMarkdown(actor) {
   const name = actor.name;
   const species = getSpecies(actor);
   const background = getBackground(actor);
-  const alignment = system.details?.alignment || "Neutral";
+  const alignment = system.details?.alignment || game.i18n.localize("MarkdownSheets.LabelNone");
   
   // Class & Level calculation (multi-class friendly)
   const classes = actor.items.filter(i => i.type === "class");
@@ -65,7 +65,7 @@ function generatePCMarkdown(actor) {
     const level = cls.system.levels || 1;
     return matchingSubclass ? `${cls.name} (${matchingSubclass.name}) ${level}` : `${cls.name} ${level}`;
   });
-  const classLine = classStrings.join(" / ") || "None";
+  const classLine = classStrings.join(" / ") || game.i18n.localize("MarkdownSheets.LabelNone");
   const totalLevel = system.details?.level || classes.reduce((sum, cls) => sum + (cls.system.levels || 0), 0) || 1;
   
   // Core stats
@@ -110,35 +110,44 @@ abilities:
 ---
 
 # ${name}
-*Level ${totalLevel} ${species} ${classLine} | Background: ${background} | Alignment: ${alignment}*
+*${game.i18n.localize("MarkdownSheets.LabelLevel")} ${totalLevel} ${species} ${classLine} | ${game.i18n.localize("MarkdownSheets.LabelBackground")}: ${background} | ${game.i18n.localize("MarkdownSheets.LabelAlignment")}: ${alignment}*
 
-## Core Stats
-- **Armor Class:** ${acVal}
-- **Hit Points:** ${hpVal} / ${hpMax}${hpTemp ? ` (Temp: ${hpTemp})` : ""}
-- **Speed:** ${speedStr}
-- **Initiative:** ${initMod}
-- **Proficiency Bonus:** ${profBonus}
-- **Senses:** ${sensesStr}
-- **Languages:** ${langStr}
+## ${game.i18n.localize("MarkdownSheets.LabelCoreStats")}
+- **${game.i18n.localize("MarkdownSheets.LabelAC")}:** ${acVal}
+- **${game.i18n.localize("MarkdownSheets.LabelHP")}:** ${hpVal} / ${hpMax}${hpTemp ? ` (Temp: ${hpTemp})` : ""}
+- **${game.i18n.localize("MarkdownSheets.LabelSpeed")}:** ${speedStr}
+- **${game.i18n.localize("MarkdownSheets.LabelInitiative")}:** ${initMod}
+- **${game.i18n.localize("MarkdownSheets.LabelProficiencyBonus")}:** ${profBonus}
+- **${game.i18n.localize("MarkdownSheets.LabelSenses")}:** ${sensesStr}
+- **${game.i18n.localize("MarkdownSheets.LabelLanguages")}:** ${langStr}
 
-### Saving Throws
+### ${game.i18n.localize("MarkdownSheets.LabelSavingThrows")}
 `;
 
   // Append saves
   const abilities = system.abilities;
   if (abilities) {
-    for (const [key, abName] of Object.entries({ str: "Strength", dex: "Dexterity", con: "Constitution", int: "Intelligence", wis: "Wisdom", cha: "Charisma" })) {
+    const abKeys = {
+      str: CONFIG.DND5E?.abilities?.str?.label ? game.i18n.localize(CONFIG.DND5E.abilities.str.label) : "Strength",
+      dex: CONFIG.DND5E?.abilities?.dex?.label ? game.i18n.localize(CONFIG.DND5E.abilities.dex.label) : "Dexterity",
+      con: CONFIG.DND5E?.abilities?.con?.label ? game.i18n.localize(CONFIG.DND5E.abilities.con.label) : "Constitution",
+      int: CONFIG.DND5E?.abilities?.int?.label ? game.i18n.localize(CONFIG.DND5E.abilities.int.label) : "Intelligence",
+      wis: CONFIG.DND5E?.abilities?.wis?.label ? game.i18n.localize(CONFIG.DND5E.abilities.wis.label) : "Wisdom",
+      cha: CONFIG.DND5E?.abilities?.cha?.label ? game.i18n.localize(CONFIG.DND5E.abilities.cha.label) : "Charisma"
+    };
+    
+    for (const [key, abName] of Object.entries(abKeys)) {
       const ability = abilities[key];
       if (ability) {
         const saveMod = formatMod(ability.save || ability.mod || 0);
-        const isProf = ability.proficient ? " (Proficient)" : "";
+        const isProf = ability.proficient ? ` (${game.i18n.localize("DND5E.Proficient")})` : "";
         md += `- **${abName}:** ${saveMod}${isProf}\n`;
       }
     }
   }
   
   md += `
-### Skills
+### ${game.i18n.localize("MarkdownSheets.LabelSkills")}
 ${getSkillsBlock(actor)}
 ---
 `;
@@ -182,12 +191,12 @@ ${getSkillsBlock(actor)}
   
   // Section: Features
   if (featuresList.length > 0) {
-    md += `\n## Features & Talents\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelFeaturesTalents")}\n`;
     for (const f of featuresList.sort((a, b) => a.name.localeCompare(b.name))) {
       const typeLabel = getFeatureSource(f);
       const requirement = f.system.requirements ? ` (${f.system.requirements})` : "";
-      const uses = f.system.uses?.max ? ` | Uses: ${f.system.uses.value}/${f.system.uses.max}` : "";
-      md += `\n### ${f.name}\n- **Type:** ${typeLabel}${requirement}${uses}\n\n${formatItemDescription(f)}\n`;
+      const uses = f.system.uses?.max ? ` | ${game.i18n.localize("MarkdownSheets.LabelUsage")}: ${f.system.uses.value}/${f.system.uses.max}` : "";
+      md += `\n### ${f.name}\n- **${game.i18n.localize("MarkdownSheets.LabelType")}:** ${typeLabel}${requirement}${uses}\n\n${formatItemDescription(f)}\n`;
     }
     md += `\n---\n`;
   }
@@ -195,38 +204,39 @@ ${getSkillsBlock(actor)}
   // Section: Inventory
   const hasInventory = weaponsList.length || armorList.length || equipmentList.length || consumablesList.length || toolsList.length || containersList.length || lootList.length;
   if (hasInventory) {
-    md += `\n## Inventory\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelInventory")}\n`;
     
-    const appendInvSection = (title, list) => {
+    const appendInvSection = (titleKey, list) => {
       if (list.length === 0) return "";
+      const title = game.i18n.localize(titleKey);
       let sec = `\n### ${title}\n`;
       for (const i of list.sort((a, b) => a.name.localeCompare(b.name))) {
         const qty = i.system.quantity ?? 1;
         const wt = i.system.weight ?? 0;
         const totalWt = (qty * wt).toFixed(1);
-        const eq = i.system.equipped ? " (Equipped)" : "";
+        const eq = i.system.equipped ? ` (${game.i18n.localize("MarkdownSheets.LabelEquipped")})` : "";
         const props = getItemProperties(i);
-        const propsStr = props ? ` | Properties: ${props}` : "";
+        const propsStr = props ? ` | ${game.i18n.localize("MarkdownSheets.LabelProperties")}: ${props}` : "";
         
-        sec += `\n#### ${i.name}${eq}\n- **Quantity:** ${qty} | **Weight:** ${totalWt} lbs${propsStr}\n\n${formatItemDescription(i)}\n`;
+        sec += `\n#### ${i.name}${eq}\n- **${game.i18n.localize("MarkdownSheets.LabelQuantity")}:** ${qty} | **${game.i18n.localize("MarkdownSheets.LabelWeight")}:** ${totalWt} lbs${propsStr}\n\n${formatItemDescription(i)}\n`;
       }
       return sec;
     };
     
-    md += appendInvSection("Weapons", weaponsList);
-    md += appendInvSection("Armor & Shield", armorList);
-    md += appendInvSection("Equipment & Gear", equipmentList);
-    md += appendInvSection("Consumables", consumablesList);
-    md += appendInvSection("Tools", toolsList);
-    md += appendInvSection("Containers", containersList);
-    md += appendInvSection("Other Loot", lootList);
+    md += appendInvSection("MarkdownSheets.InvWeapons", weaponsList);
+    md += appendInvSection("MarkdownSheets.InvArmorShield", armorList);
+    md += appendInvSection("MarkdownSheets.InvEquipmentGear", equipmentList);
+    md += appendInvSection("MarkdownSheets.InvConsumables", consumablesList);
+    md += appendInvSection("MarkdownSheets.InvTools", toolsList);
+    md += appendInvSection("MarkdownSheets.InvContainers", containersList);
+    md += appendInvSection("MarkdownSheets.InvOtherLoot", lootList);
     
     md += `\n---\n`;
   }
   
   // Section: Spellcasting
   if (spellsList.length > 0) {
-    md += `\n## Spellcasting\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelSpellcasting")}\n`;
     const scInfo = getSpellcastingInfo(actor);
     if (scInfo) md += `${scInfo}\n\n`;
     
@@ -239,12 +249,12 @@ ${getSkillsBlock(actor)}
     
     const sortedLevels = Object.keys(spellGroups).map(Number).sort((a, b) => a - b);
     for (const lvl of sortedLevels) {
-      const title = lvl === 0 ? "Cantrips" : `Level ${lvl} Spells`;
+      const title = lvl === 0 ? game.i18n.localize("MarkdownSheets.LabelCantrips") : game.i18n.format("MarkdownSheets.LabelLevelSpells", { level: lvl });
       let slotsStr = "";
       if (lvl > 0 && system.spells?.[`spell${lvl}`]) {
         const slots = system.spells[`spell${lvl}`];
         if (slots.max > 0) {
-          slotsStr = ` (${slots.value}/${slots.max} slots)`;
+          slotsStr = ` (${slots.value}/${slots.max} ${game.i18n.localize("MarkdownSheets.LabelSlots")})`;
         }
       }
       
@@ -255,14 +265,14 @@ ${getSkillsBlock(actor)}
         const components = getSpellProperties(s);
         const duration = s.system.duration ? `${s.system.duration.value || ""} ${s.system.duration.units || ""}`.trim() : "";
         const schoolKey = s.system.school;
-        const school = CONFIG.DND5E?.spellSchools?.[schoolKey]?.label || schoolKey || "";
+        const school = CONFIG.DND5E?.spellSchools?.[schoolKey]?.label ? game.i18n.localize(CONFIG.DND5E.spellSchools[schoolKey].label) : (schoolKey || "");
         
         md += `\n#### ${s.name}\n`;
-        md += `- **School:** ${school}\n`;
-        md += `- **Casting Time:** ${activation}\n`;
-        md += `- **Range:** ${sRange}\n`;
-        md += `- **Components:** ${components}\n`;
-        md += `- **Duration:** ${duration}\n\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelSchool")}:** ${school}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelCastingTime")}:** ${activation}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelRange")}:** ${sRange}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelComponents")}:** ${components}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelDuration")}:** ${duration}\n\n`;
         md += `${formatItemDescription(s)}\n`;
       }
     }
@@ -273,12 +283,12 @@ ${getSkillsBlock(actor)}
   const bio = system.details?.biography?.value || "";
   const appearance = system.details?.appearance || "";
   if (bio || appearance) {
-    md += `\n## Biography & Appearance\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelBiographyAppearance")}\n`;
     if (appearance) {
-      md += `\n### Appearance\n${appearance}\n`;
+      md += `\n### ${game.i18n.localize("MarkdownSheets.LabelAppearance")}\n${appearance}\n`;
     }
     if (bio) {
-      md += `\n### Biography\n${htmlToMarkdown(bio)}\n`;
+      md += `\n### ${game.i18n.localize("MarkdownSheets.LabelBiography")}\n${htmlToMarkdown(bio)}\n`;
     }
   }
   
@@ -297,11 +307,11 @@ function generateNPCMarkdown(actor) {
   const name = actor.name;
   const cr = system.details?.cr ?? "0";
   const xp = system.details?.xp?.value ?? 0;
-  const alignment = system.details?.alignment || "Neutral";
+  const alignment = system.details?.alignment || game.i18n.localize("MarkdownSheets.LabelNone");
   
   // Size and Type
   const sizeKey = system.traits?.size || "med";
-  const size = CONFIG.DND5E?.actorSizes?.[sizeKey]?.label || sizeKey.toUpperCase();
+  const size = CONFIG.DND5E?.actorSizes?.[sizeKey]?.label ? game.i18n.localize(CONFIG.DND5E.actorSizes[sizeKey].label) : sizeKey.toUpperCase();
   const npcType = getNPCType(actor);
   
   // AC and HP
@@ -344,14 +354,14 @@ abilities:
 # ${name}
 *${size} ${npcType}, ${alignment}*
 
-- **Challenge Rating:** ${cr} (${xp} XP)
-- **Armor Class:** ${acVal}${acFormula ? ` ${acFormula}` : ""}
-- **Hit Points:** ${hpVal} / ${hpMax}${hpFormula ? ` ${hpFormula}` : ""}
-- **Speed:** ${speedStr}
-- **Senses:** ${sensesStr}
-- **Languages:** ${langStr}
+- **${game.i18n.localize("MarkdownSheets.LabelChallengeRating")}:** ${cr} (${xp} ${game.i18n.localize("MarkdownSheets.LabelXP")})
+- **${game.i18n.localize("MarkdownSheets.LabelAC")}:** ${acVal}${acFormula ? ` ${acFormula}` : ""}
+- **${game.i18n.localize("MarkdownSheets.LabelHP")}:** ${hpVal} / ${hpMax}${hpFormula ? ` ${hpFormula}` : ""}
+- **${game.i18n.localize("MarkdownSheets.LabelSpeed")}:** ${speedStr}
+- **${game.i18n.localize("MarkdownSheets.LabelSenses")}:** ${sensesStr}
+- **${game.i18n.localize("MarkdownSheets.LabelLanguages")}:** ${langStr}
 
-### Ability Scores
+### ${game.i18n.localize("MarkdownSheets.LabelAbilityScores")}
 | STR | DEX | CON | INT | WIS | CHA |
 | :---: | :---: | :---: | :---: | :---: | :---: |
 | ${system.abilities?.str?.value ?? 10} (${formatMod(system.abilities?.str?.mod ?? 0)}) | ${system.abilities?.dex?.value ?? 10} (${formatMod(system.abilities?.dex?.mod ?? 0)}) | ${system.abilities?.con?.value ?? 10} (${formatMod(system.abilities?.con?.mod ?? 0)}) | ${system.abilities?.int?.value ?? 10} (${formatMod(system.abilities?.int?.mod ?? 0)}) | ${system.abilities?.wis?.value ?? 10} (${formatMod(system.abilities?.wis?.mod ?? 0)}) | ${system.abilities?.cha?.value ?? 10} (${formatMod(system.abilities?.cha?.mod ?? 0)}) |
@@ -399,7 +409,7 @@ abilities:
 
   // Section: Traits
   if (traitsList.length > 0) {
-    md += `\n## Traits & Passive Abilities\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelTraitsPassiveAbilities")}\n`;
     for (const t of traitsList.sort((a, b) => a.name.localeCompare(b.name))) {
       md += `\n### ${t.name}\n${formatItemDescription(t)}\n`;
     }
@@ -408,10 +418,10 @@ abilities:
   
   // Section: Actions
   if (actionsList.length > 0) {
-    md += `\n## Actions\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelActions")}\n`;
     for (const a of actionsList.sort((a, b) => a.name.localeCompare(b.name))) {
       const props = getItemProperties(a);
-      const propsStr = props ? ` - *Properties: ${props}*\n` : "";
+      const propsStr = props ? ` - *${game.i18n.localize("MarkdownSheets.LabelProperties")}: ${props}*\n` : "";
       md += `\n### ${a.name}\n${propsStr}${formatItemDescription(a)}\n`;
     }
     md += `\n---\n`;
@@ -419,7 +429,7 @@ abilities:
   
   // Section: Bonus Actions
   if (bonusActionsList.length > 0) {
-    md += `\n## Bonus Actions\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelBonusActions")}\n`;
     for (const ba of bonusActionsList.sort((a, b) => a.name.localeCompare(b.name))) {
       md += `\n### ${ba.name}\n${formatItemDescription(ba)}\n`;
     }
@@ -428,7 +438,7 @@ abilities:
   
   // Section: Reactions
   if (reactionsList.length > 0) {
-    md += `\n## Reactions\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelReactions")}\n`;
     for (const r of reactionsList.sort((a, b) => a.name.localeCompare(b.name))) {
       md += `\n### ${r.name}\n${formatItemDescription(r)}\n`;
     }
@@ -437,10 +447,10 @@ abilities:
   
   // Section: Legendary Actions
   if (legendaryList.length > 0) {
-    const legMax = system.resources?.legact?.max ? ` (Max Actions: ${system.resources.legact.max})` : "";
-    md += `\n## Legendary Actions${legMax}\n`;
+    const legMax = system.resources?.legact?.max ? ` (${game.i18n.format("MarkdownSheets.LabelMaxActions", { max: system.resources.legact.max })})` : "";
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelLegendaryActions")}${legMax}\n`;
     for (const la of legendaryList.sort((a, b) => a.name.localeCompare(b.name))) {
-      const cost = la.system.activation?.cost ? ` (Costs ${la.system.activation.cost} Actions)` : "";
+      const cost = la.system.activation?.cost ? ` (${game.i18n.format("MarkdownSheets.LabelCostsActions", { cost: la.system.activation.cost })})` : "";
       md += `\n### ${la.name}${cost}\n${formatItemDescription(la)}\n`;
     }
     md += `\n---\n`;
@@ -448,7 +458,7 @@ abilities:
   
   // Section: Lair Actions
   if (lairList.length > 0) {
-    md += `\n## Lair Actions\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelLairActions")}\n`;
     for (const la of lairList.sort((a, b) => a.name.localeCompare(b.name))) {
       md += `\n### ${la.name}\n${formatItemDescription(la)}\n`;
     }
@@ -457,7 +467,7 @@ abilities:
   
   // Section: Spells (if NPC is spellcaster)
   if (spellsList.length > 0) {
-    md += `\n## Spellcasting\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelSpellcasting")}\n`;
     const scInfo = getSpellcastingInfo(actor);
     if (scInfo) md += `${scInfo}\n\n`;
     
@@ -470,12 +480,12 @@ abilities:
     
     const sortedLevels = Object.keys(spellGroups).map(Number).sort((a, b) => a - b);
     for (const lvl of sortedLevels) {
-      const title = lvl === 0 ? "Cantrips" : `Level ${lvl} Spells`;
+      const title = lvl === 0 ? game.i18n.localize("MarkdownSheets.LabelCantrips") : game.i18n.format("MarkdownSheets.LabelLevelSpells", { level: lvl });
       let slotsStr = "";
       if (lvl > 0 && system.spells?.[`spell${lvl}`]) {
         const slots = system.spells[`spell${lvl}`];
         if (slots.max > 0) {
-          slotsStr = ` (${slots.value}/${slots.max} slots)`;
+          slotsStr = ` (${slots.value}/${slots.max} ${game.i18n.localize("MarkdownSheets.LabelSlots")})`;
         }
       }
       
@@ -486,14 +496,14 @@ abilities:
         const components = getSpellProperties(s);
         const duration = s.system.duration ? `${s.system.duration.value || ""} ${s.system.duration.units || ""}`.trim() : "";
         const schoolKey = s.system.school;
-        const school = CONFIG.DND5E?.spellSchools?.[schoolKey]?.label || schoolKey || "";
+        const school = CONFIG.DND5E?.spellSchools?.[schoolKey]?.label ? game.i18n.localize(CONFIG.DND5E.spellSchools[schoolKey].label) : (schoolKey || "");
         
         md += `\n#### ${s.name}\n`;
-        md += `- **School:** ${school}\n`;
-        md += `- **Casting Time:** ${activation}\n`;
-        md += `- **Range:** ${sRange}\n`;
-        md += `- **Components:** ${components}\n`;
-        md += `- **Duration:** ${duration}\n\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelSchool")}:** ${school}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelCastingTime")}:** ${activation}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelRange")}:** ${sRange}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelComponents")}:** ${components}\n`;
+        md += `- **${game.i18n.localize("MarkdownSheets.LabelDuration")}:** ${duration}\n\n`;
         md += `${formatItemDescription(s)}\n`;
       }
     }
@@ -503,7 +513,7 @@ abilities:
   // Section: Biography
   const bio = system.details?.biography?.value || "";
   if (bio) {
-    md += `\n## Biography & Description\n`;
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelBiographyDescription")}\n`;
     md += `${htmlToMarkdown(bio)}\n`;
   }
   
@@ -529,25 +539,25 @@ function escapeYamlString(str) {
 function getSpecies(actor) {
   const raceItem = actor.items.find(i => i.type === "race" || i.type === "species");
   if (raceItem) return raceItem.name;
-  return actor.system.details?.race || "Unknown Species";
+  return actor.system.details?.race || game.i18n.localize("MarkdownSheets.LabelUnknownSpecies");
 }
 
 function getBackground(actor) {
   const bgItem = actor.items.find(i => i.type === "background");
   if (bgItem) return bgItem.name;
-  return actor.system.details?.background || "None";
+  return actor.system.details?.background || game.i18n.localize("MarkdownSheets.LabelNone");
 }
 
 function getNPCType(actor) {
   const details = actor.system.details;
-  if (!details || !details.type) return "Unknown Type";
+  if (!details || !details.type) return game.i18n.localize("MarkdownSheets.LabelUnknownType");
   let typeStr = details.type.value || "";
   typeStr = typeStr.charAt(0).toUpperCase() + typeStr.slice(1);
   if (details.type.subtype) {
     typeStr += ` (${details.type.subtype})`;
   }
   if (details.type.swarm) {
-    typeStr = `Swarm of ${details.type.swarm} ${typeStr}`;
+    typeStr = game.i18n.format("MarkdownSheets.LabelSwarmOf", { swarm: details.type.swarm, type: typeStr });
   }
   return typeStr;
 }
@@ -572,7 +582,7 @@ function getSpeedString(actor) {
 
 function getSenses(actor) {
   const senses = actor.system.attributes?.senses;
-  if (!senses) return "None";
+  if (!senses) return game.i18n.localize("MarkdownSheets.LabelNone");
   
   const parts = [];
   if (senses.darkvision) parts.push(`Darkvision ${senses.darkvision} ft`);
@@ -589,7 +599,7 @@ function getSenses(actor) {
 
 function getLanguages(actor) {
   const langs = actor.system.traits?.languages;
-  if (!langs) return "None";
+  if (!langs) return game.i18n.localize("MarkdownSheets.LabelNone");
   const list = [];
   if (langs.value) {
     const keys = langs.value instanceof Set ? Array.from(langs.value) : (Array.isArray(langs.value) ? langs.value : []);
@@ -601,7 +611,7 @@ function getLanguages(actor) {
   if (langs.custom) {
     list.push(...langs.custom.split(/[,;]/).map(s => s.trim()));
   }
-  return list.join(", ") || "None";
+  return list.join(", ") || game.i18n.localize("MarkdownSheets.LabelNone");
 }
 
 function getAbilitiesBlock(actor) {
@@ -627,7 +637,7 @@ function getAbilitiesBlock(actor) {
     const val = ab.value || 10;
     const mod = formatMod(ab.mod || 0);
     const saveMod = formatMod(ab.save || ab.mod || 0);
-    const isProf = ab.proficient ? " (Proficient)" : "";
+    const isProf = ab.proficient ? ` (${game.i18n.localize("DND5E.Proficient")})` : "";
     result[name] = `${val} (${mod}, Save: ${saveMod}${isProf})`;
   }
   return result;
@@ -663,25 +673,28 @@ function getSkillsBlock(actor) {
     const skill = skills[key];
     if (!skill) continue;
     
+    // Resolve dynamically localized skill label if available in the game system, falling back to name
+    const skillLabel = CONFIG.DND5E?.skills?.[key]?.label ? game.i18n.localize(CONFIG.DND5E.skills[key].label) : name;
+    
     const modStr = formatMod(skill.total);
     let profLabel = "";
-    if (skill.value === 1) profLabel = " (Proficient)";
-    else if (skill.value === 2) profLabel = " (Expertise)";
-    else if (skill.value === 0.5) profLabel = " (Half-Proficient)";
+    if (skill.value === 1) profLabel = ` (${game.i18n.localize("DND5E.Proficient")})`;
+    else if (skill.value === 2) profLabel = ` (${game.i18n.localize("DND5E.Expertise")})`;
+    else if (skill.value === 0.5) profLabel = ` (${game.i18n.localize("DND5E.HalfProficient")})`;
     
-    block += `- **${name}:** ${modStr}${profLabel} (Passive: ${skill.passive || 10})\n`;
+    block += `- **${skillLabel}:** ${modStr}${profLabel} (Passive: ${skill.passive || 10})\n`;
   }
   return block;
 }
 
 function getFeatureSource(item) {
   const typeValue = item.system.type?.value;
-  if (typeValue === "class") return "Class Feature";
-  if (typeValue === "subclass") return "Subclass Feature";
-  if (typeValue === "race") return "Species Trait";
-  if (typeValue === "background") return "Background Feature";
-  if (typeValue === "feat") return "Feat";
-  return "Feature";
+  if (typeValue === "class") return game.i18n.localize("MarkdownSheets.FeatureClass");
+  if (typeValue === "subclass") return game.i18n.localize("MarkdownSheets.FeatureSubclass");
+  if (typeValue === "race") return game.i18n.localize("MarkdownSheets.FeatureRace");
+  if (typeValue === "background") return game.i18n.localize("MarkdownSheets.FeatureBackground");
+  if (typeValue === "feat") return game.i18n.localize("MarkdownSheets.FeatureFeat");
+  return game.i18n.localize("MarkdownSheets.FeatureFeature");
 }
 
 function getItemProperties(item) {
@@ -693,7 +706,7 @@ function getItemProperties(item) {
   
   pSet.forEach(p => {
     const label = CONFIG.DND5E?.itemProperties?.[p]?.label || CONFIG.DND5E?.weaponProperties?.[p]?.label || p;
-    props.push(label);
+    props.push(game.i18n.localize(label));
   });
   
   return props.join(", ");
@@ -722,27 +735,27 @@ function getSpellProperties(item) {
   if (sys.materials?.value) {
     label += ` (${sys.materials.value})`;
   }
-  return label || "None";
+  return label || game.i18n.localize("MarkdownSheets.LabelNone");
 }
 
 function getSpellcastingInfo(actor) {
   const sc = actor.system.attributes?.spellcasting;
   if (!sc) return null;
   
-  const abilityLabel = CONFIG.DND5E?.abilities?.[sc]?.label || sc.toUpperCase();
+  const abilityLabel = CONFIG.DND5E?.abilities?.[sc]?.label ? game.i18n.localize(CONFIG.DND5E.abilities[sc].label) : sc.toUpperCase();
   const spelldc = actor.system.attributes?.spelldc || 8;
   
   const prof = actor.system.attributes?.prof || 0;
   const mod = actor.system.abilities?.[sc]?.mod || 0;
   const attackBonus = formatMod(prof + mod);
   
-  return `**Spellcasting Ability:** ${abilityLabel} (Spell Save DC: ${spelldc}, Spell Attack Bonus: ${attackBonus})`;
+  return `**${game.i18n.localize("MarkdownSheets.LabelSpellcastingAbility")}:** ${abilityLabel} (${game.i18n.localize("MarkdownSheets.LabelSpellSaveDC")}: ${spelldc}, ${game.i18n.localize("MarkdownSheets.LabelSpellAttackBonus")}: ${attackBonus})`;
 }
 
 function formatItemDescription(item) {
   const descHtml = item.system.description?.value || "";
   const mdDesc = htmlToMarkdown(descHtml);
-  return mdDesc || "*No description provided.*";
+  return mdDesc || `*${game.i18n.localize("MarkdownSheets.LabelNoDescription")}*`;
 }
 
 function downloadMarkdown(filename, content) {
