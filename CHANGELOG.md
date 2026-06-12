@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.0.5] - 2026-06-12
+### :recycle: Refactors
+- [`05051d5`](https://github.com/nickmoline/foundry-markdown-sheets/commit/05051d5f9aa9a5a08285f5c5fcf0c13a9caecd74) - remove html-to-markdown.js and consolidate exporter logic in markdown-exporter.js *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+
 ## [v0.0.4] - 2026-06-12
 ### :recycle: Refactors
 - [`0630810`](https://github.com/nickmoline/foundry-markdown-sheets/commit/063081006d529835855752b43addc3bbea14e1bd) - wrap action handler registration in a try-catch block for improved robustness *(commit by [@nickmoline](https://github.com/nickmoline))*
@@ -36,3 +41,4 @@ All notable changes to this project will be documented in this file.
 [v0.0.2-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.1-alpha...v0.0.2-alpha
 [v0.0.3-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.2-alpha...v0.0.3-alpha
 [v0.0.4]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.3-alpha...v0.0.4
+[v0.0.5]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.4...v0.0.5
