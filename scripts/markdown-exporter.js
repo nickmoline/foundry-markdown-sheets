@@ -1,9 +1,29 @@
 import { htmlToMarkdown } from "./html-to-markdown.js";
 
-// 1. Hook for ApplicationV2 (Modern) sheet headers/context controls (Foundry v13/v14)
-Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
-  const actor = app.actor || (app.document && app.document.documentName === "Actor" ? app.document : null);
+console.log("Markdown Sheets | scripts/markdown-exporter.js is executing...");
+
+// 1. Hook for ApplicationV1 (Legacy) sheet headers (still active in v13/v14 for V1 sheets)
+Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
+  console.log("Markdown Sheets | getActorSheetHeaderButtons hook triggered");
+  const actor = sheet.actor;
   if (!actor || (actor.type !== "character" && actor.type !== "npc")) return;
+  
+  buttons.unshift({
+    label: game.i18n.localize("MarkdownSheets.ExportButton"),
+    class: "export-markdown-sheet",
+    icon: "fas fa-file-markdown",
+    onclick: () => exportActorToMarkdown(actor)
+  });
+});
+
+// 2. Hook callback for ApplicationV2 (Modern) sheet headers/context controls (Foundry v13/v14)
+const registerAppV2HeaderControl = (app, controls) => {
+  console.log("Markdown Sheets | getHeaderControls hook triggered for app:", app.constructor.name);
+  const actor = app.actor || (app.document && app.document.documentName === "Actor" ? app.document : null);
+  if (!actor || (actor.type !== "character" && actor.type !== "npc")) {
+    console.log("Markdown Sheets | getHeaderControls skipped - actor not character/npc:", actor);
+    return;
+  }
 
   // Dynamically register the action on the application instance options
   if (!app.options.actions) app.options.actions = {};
@@ -29,9 +49,25 @@ Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
     visible: true,
     onclick: () => exportActorToMarkdown(actor) // Direct execution fallback
   });
-});
+};
 
-// Helper to retrieve Actor from context menu target (handles raw DOM target)
+// Register on multiple possible Hook names along the ApplicationV2 inheritance chain for maximum compatibility
+const headerHooksToRegister = [
+  "getHeaderControlsApplicationV2",
+  "getHeaderControlsDocumentSheetV2",
+  "getHeaderControlsActorSheetV2",
+  "getHeaderControlsActorSheet5e",
+  "getHeaderControlsActorSheet5eCharacter",
+  "getHeaderControlsActorSheet5eNPC",
+  "getHeaderControlsActorSheet5eCharacter2",
+  "getHeaderControlsActorSheet5eNPC2"
+];
+
+for (const hookName of headerHooksToRegister) {
+  Hooks.on(hookName, registerAppV2HeaderControl);
+}
+
+// Helper to retrieve Actor from context menu target (handles raw DOM / jQuery targets)
 function getActorFromContextTarget(target) {
   if (!target) return null;
   const el = target instanceof HTMLElement ? target : (target[0] || target);
@@ -40,9 +76,10 @@ function getActorFromContextTarget(target) {
   return game.actors.get(actorId);
 }
 
-// 2. Hook for ApplicationV2 (Modern) Actor directory context menu (Foundry v13/v14)
-Hooks.on("getActorContextOptions", (application, menuItems) => {
-  menuItems.push({
+// 3. Hook for ApplicationV1 (Legacy) Actor directory context menu (still active in v13/v14)
+Hooks.on("getActorDirectoryEntryContext", (html, entryOptions) => {
+  console.log("Markdown Sheets | getActorDirectoryEntryContext hook triggered");
+  entryOptions.push({
     name: game.i18n.localize("MarkdownSheets.ExportButton"),
     icon: '<i class="fas fa-file-markdown"></i>',
     callback: (target) => {
@@ -55,6 +92,41 @@ Hooks.on("getActorContextOptions", (application, menuItems) => {
     }
   });
 });
+
+// 4. Hook callback for ApplicationV2 (Modern) Actor directory context menu (Foundry v13/v14)
+const registerActorContextOptions = (application, menuItems) => {
+  console.log("Markdown Sheets | getActorContextOptions hook triggered. Current menuItems:", menuItems);
+  
+  // Avoid duplicates
+  if (menuItems.some(item => item.name === game.i18n.localize("MarkdownSheets.ExportButton") || item.icon?.includes("fa-file-markdown"))) {
+    return;
+  }
+  
+  menuItems.push({
+    name: game.i18n.localize("MarkdownSheets.ExportButton"),
+    icon: '<i class="fas fa-file-markdown"></i>',
+    callback: (target) => {
+      console.log("Markdown Sheets | Actor context menu option clicked. Target element:", target);
+      const actor = getActorFromContextTarget(target);
+      console.log("Markdown Sheets | Retrieved actor from target:", actor);
+      if (actor && (actor.type === "character" || actor.type === "npc")) {
+        exportActorToMarkdown(actor);
+      } else {
+        ui.notifications.warn(game.i18n.localize("MarkdownSheets.NotifyTypeWarning"));
+      }
+    }
+  });
+};
+
+const contextHooksToRegister = [
+  "getActorContextOptions",
+  "getActorDirectoryEntryContextOptions",
+  "getActorDirectoryContextOptions"
+];
+
+for (const hookName of contextHooksToRegister) {
+  Hooks.on(hookName, registerActorContextOptions);
+}
 
 
 
