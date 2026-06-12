@@ -84,9 +84,13 @@
         return `\`${childrenContent}\``;
       case 'PRE':
         return `\n\`\`\`\n${childrenContent}\n\`\`\`\n`;
-      case 'A':
+      case 'A': {
         const href = node.getAttribute('href') || '';
+        if (!href || (!href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#'))) {
+          return childrenContent;
+        }
         return `[${childrenContent}](${href})`;
+      }
       case 'H1': return `\n# ${childrenContent}\n\n`;
       case 'H2': return `\n## ${childrenContent}\n\n`;
       case 'H3': return `\n### ${childrenContent}\n\n`;
