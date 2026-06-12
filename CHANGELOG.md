@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.0.3-alpha] - 2026-06-12
+### :sparkles: New Features
+- [`3adb468`](https://github.com/nickmoline/foundry-markdown-sheets/commit/3adb468d932d7de2f13416ca800441f42218232f) - add legacy ApplicationV1 support and expand ApplicationV2 hook registration for broader compatibility *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+
 ## [v0.0.2-alpha] - 2026-06-12
 ### :sparkles: New Features
 - [`df5a2f5`](https://github.com/nickmoline/foundry-markdown-sheets/commit/df5a2f5b52faf34cba4fc2373a84ca15d80fa97f) - add actor image to markdown export and improve filename sanitization *(commit by [@nickmoline](https://github.com/nickmoline))*
@@ -24,3 +29,4 @@ All notable changes to this project will be documented in this file.
 
 [v0.0.1-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.0...v0.0.1-alpha
 [v0.0.2-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.1-alpha...v0.0.2-alpha
+[v0.0.3-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.2-alpha...v0.0.3-alpha
