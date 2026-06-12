@@ -1,20 +1,62 @@
 import { htmlToMarkdown } from "./html-to-markdown.js";
 
-// Hook into character/NPC sheet header button generation
-Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
-  const actor = sheet.actor;
-  if (!actor) return;
-  
-  // We support exporting "character" and "npc" types in dnd5e
-  if (actor.type !== "character" && actor.type !== "npc") return;
-  
-  buttons.unshift({
-    label: game.i18n.localize("MarkdownSheets.ExportButton"),
-    class: "export-markdown-sheet",
+// 1. Hook for ApplicationV2 (Modern) sheet headers/context controls (Foundry v13/v14)
+Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
+  const actor = app.actor || (app.document && app.document.documentName === "Actor" ? app.document : null);
+  if (!actor || (actor.type !== "character" && actor.type !== "npc")) return;
+
+  // Dynamically register the action on the application instance options
+  if (!app.options.actions) app.options.actions = {};
+  app.options.actions["export-markdown-sheet-v2"] = function(event, target) {
+    exportActorToMarkdown(actor);
+  };
+
+  // Also bind to static actions config for security
+  if (app.constructor.DEFAULT_OPTIONS) {
+    if (!app.constructor.DEFAULT_OPTIONS.actions) app.constructor.DEFAULT_OPTIONS.actions = {};
+    app.constructor.DEFAULT_OPTIONS.actions["export-markdown-sheet-v2"] = function(event, target) {
+      exportActorToMarkdown(actor);
+    };
+  }
+
+  // Prevent duplicate additions
+  if (controls.some(c => c.action === "export-markdown-sheet-v2")) return;
+
+  controls.push({
+    action: "export-markdown-sheet-v2",
     icon: "fas fa-file-markdown",
-    onclick: () => exportActorToMarkdown(actor)
+    label: game.i18n.localize("MarkdownSheets.ExportButton"),
+    visible: true,
+    onclick: () => exportActorToMarkdown(actor) // Direct execution fallback
   });
 });
+
+// Helper to retrieve Actor from context menu target (handles raw DOM target)
+function getActorFromContextTarget(target) {
+  if (!target) return null;
+  const el = target instanceof HTMLElement ? target : (target[0] || target);
+  if (!el) return null;
+  const actorId = el.dataset?.documentId || el.getAttribute?.("data-document-id") || el.dataset?.entryId;
+  return game.actors.get(actorId);
+}
+
+// 2. Hook for ApplicationV2 (Modern) Actor directory context menu (Foundry v13/v14)
+Hooks.on("getActorContextOptions", (application, menuItems) => {
+  menuItems.push({
+    name: game.i18n.localize("MarkdownSheets.ExportButton"),
+    icon: '<i class="fas fa-file-markdown"></i>',
+    callback: (target) => {
+      const actor = getActorFromContextTarget(target);
+      if (actor && (actor.type === "character" || actor.type === "npc")) {
+        exportActorToMarkdown(actor);
+      } else {
+        ui.notifications.warn(game.i18n.localize("MarkdownSheets.NotifyTypeWarning"));
+      }
+    }
+  });
+});
+
+
 
 /**
  * Main function to export Actor document to Markdown and download it.
