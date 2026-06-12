@@ -56,10 +56,11 @@ jobs:
         uses: battila7/get-version-action@v2
 
       - name: Update Changelog
-        uses: stefanzweifel/changelog-updater-action@v1
+        id: git_changelog
+        uses: requarks/changelog-action@v1
         with:
-          latest-version: ${{steps.get_version.outputs.version-without-v}}
-          release-notes: ${{ github.event.release.body }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.release.tag_name }}
 
       - name: Commit updated CHANGELOG
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -124,4 +125,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: './module.json, ./module.zip'
           tag: ${{ github.event.release.tag_name }}
-          body: ${{ github.event.release.body }}
+          body: |
+            ${{ github.event.release.body }}
+
+            ## Changelog
+            ${{ steps.git_changelog.outputs.changelog }}
