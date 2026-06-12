@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.1.0] - 2026-06-12
+### :sparkles: New Features
+- [`80c2baf`](https://github.com/nickmoline/foundry-markdown-sheets/commit/80c2baf533ff18b28e5974554bf4755e40b1207b) - add ability score table and implement robust saving throw calculation in markdown exporter *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+### :recycle: Refactors
+- [`97b6cb9`](https://github.com/nickmoline/foundry-markdown-sheets/commit/97b6cb9ddeed5064235d37eae7b321f4af8baccf) - make markdown generation and item description formatting asynchronous to support HTML enrichment *(commit by [@nickmoline](https://github.com/nickmoline))*
+- [`7f76033`](https://github.com/nickmoline/foundry-markdown-sheets/commit/7f76033e15d58f2f3e3c748c3e3c75b8ce121871) - restructure YAML output for HP and abilities into detailed schemas and add utility for YAML array generation *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+
 ## [v0.0.5] - 2026-06-12
 ### :recycle: Refactors
 - [`05051d5`](https://github.com/nickmoline/foundry-markdown-sheets/commit/05051d5f9aa9a5a08285f5c5fcf0c13a9caecd74) - remove html-to-markdown.js and consolidate exporter logic in markdown-exporter.js *(commit by [@nickmoline](https://github.com/nickmoline))*
@@ -42,3 +51,4 @@ All notable changes to this project will be documented in this file.
 [v0.0.3-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.2-alpha...v0.0.3-alpha
 [v0.0.4]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.3-alpha...v0.0.4
 [v0.0.5]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.4...v0.0.5
+[v0.1.0]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.5...v0.1.0
