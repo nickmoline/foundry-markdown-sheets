@@ -1,0 +1,50 @@
+{
+  "id": "foundry-markdown-sheets",
+  "title": "Markdown Sheet Exporter",
+  "description": "Adds an 'Export Markdown' button to character and NPC sheets to export their stats, features, spells, and inventory to a Markdown file.",
+  "version": "#{VERSION}#",
+  "authors": [
+    {
+      "name": "NickMoline",
+      "url": "https://github.com/NickMoline/",
+      "discord": "nickmoline",
+      "email": "nick@moline.dev"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "maximum": "14",
+    "verified": "14"
+  },
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "manifest": "https://github.com/foundryvtt/dnd5e/releases/latest/download/system.json",
+        "compatibility": {
+          "minimum": "5.3.0",
+          "verified": "5.3.2"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/markdown-exporter.js"
+  ],
+  "styles": [
+    "styles/markdown-sheets.css"
+  ],
+  "readme": "README.md",
+  "license": "LICENSE",
+  "url": "https://github.com/nickmoline/foundry-markdown-sheets",
+  "manifest": "https://github.com/nickmoline/foundry-markdown-sheets/releases/latest/download/module.json",
+  "download": "https://github.com/nickmoline/foundry-markdown-sheets/releases/latest/download/module.zip"
+}

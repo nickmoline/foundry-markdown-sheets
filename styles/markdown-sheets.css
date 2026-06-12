@@ -1,0 +1,13 @@
+/* Style the sheet header button to fit beautifully in Foundry VTT sheets */
+.window-header .export-markdown-sheet {
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.window-header .export-markdown-sheet:hover {
+  color: #55ffaa;
+  text-shadow: 0 0 5px rgba(85, 255, 170, 0.4);
+}
+
+.window-header .export-markdown-sheet i {
+  margin-right: 3px;
+}
