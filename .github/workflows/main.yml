@@ -42,6 +42,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.release.target_commitish }}
           fetch-depth: 0
 
       # Extract version embedded in the tag.
