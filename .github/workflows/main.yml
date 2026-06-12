@@ -41,7 +41,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
 
       # Extract version embedded in the tag.
       # This step expects the tag to be one of the following formats:
@@ -54,6 +55,17 @@ jobs:
         id: get_version
         uses: battila7/get-version-action@v2
 
+      - name: Update Changelog
+        uses: stefanzweifel/changelog-updater-action@v1
+        with:
+          latest-version: ${{steps.get_version.outputs.version-without-v}}
+          release-notes: ${{ github.event.release.body }}
+
+      - name: Commit updated CHANGELOG
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update CHANGELOG.md for ${{ github.event.release.tag_name }} [skip ci]"
+          file_pattern: 'CHANGELOG.md'
 
       # Modify "module.json" with values specific to the release.
       # Since the values for the "version" and "url" keys aren't known ahead of
@@ -88,6 +100,7 @@ jobs:
             `# The files that will be included.` \
             module.json                          \
             README.md                            \
+            CHANGELOG.md                         \
             LICENSE                              \
             templates                            \
             scripts/                             \
