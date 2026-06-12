@@ -25,18 +25,14 @@ const registerAppV2HeaderControl = (app, controls) => {
     return;
   }
 
-  // Dynamically register the action on the application instance options
-  if (!app.options.actions) app.options.actions = {};
-  app.options.actions["export-markdown-sheet-v2"] = function(event, target) {
-    exportActorToMarkdown(actor);
-  };
-
-  // Also bind to static actions config for security
-  if (app.constructor.DEFAULT_OPTIONS) {
-    if (!app.constructor.DEFAULT_OPTIONS.actions) app.constructor.DEFAULT_OPTIONS.actions = {};
-    app.constructor.DEFAULT_OPTIONS.actions["export-markdown-sheet-v2"] = function(event, target) {
+  // Safely register the action handler on the application instance options
+  try {
+    if (!app.options.actions) app.options.actions = {};
+    app.options.actions["export-markdown-sheet-v2"] = function(event, target) {
       exportActorToMarkdown(actor);
     };
+  } catch (err) {
+    console.warn("Markdown Sheets | Could not register action handler on app.options.actions:", err);
   }
 
   // Prevent duplicate additions
