@@ -211,7 +211,7 @@
     buttons.unshift({
       label: game.i18n.localize("MarkdownSheets.ExportButton"),
       class: "export-markdown-sheet",
-      icon: "fas fa-file-markdown",
+      icon: "fab fa-markdown",
       onclick: () => exportActorToMarkdown(actor)
     });
   });
@@ -229,9 +229,10 @@
 
     controls.push({
       action: "export-markdown-sheet-v2",
-      icon: "fas fa-file-markdown",
+      icon: "fab fa-markdown",
       label: game.i18n.localize("MarkdownSheets.ExportButton"),
-      visible: true
+      visible: true,
+      onclick: () => exportActorToMarkdown(actor)
     });
   };
 
@@ -265,7 +266,7 @@
     console.log("Markdown Sheets | getActorDirectoryEntryContext hook triggered");
     entryOptions.push({
       name: game.i18n.localize("MarkdownSheets.ExportButton"),
-      icon: '<i class="fas fa-file-markdown"></i>',
+      icon: '<i class="fab fa-markdown"></i>',
       callback: (target) => {
         const actor = getActorFromContextTarget(target);
         if (actor && (actor.type === "character" || actor.type === "npc")) {
@@ -282,13 +283,13 @@
     console.log("Markdown Sheets | getActorContextOptions hook triggered. Current menuItems:", menuItems);
     
     // Avoid duplicates
-    if (menuItems.some(item => item.name === game.i18n.localize("MarkdownSheets.ExportButton") || item.icon?.includes("fa-file-markdown"))) {
+    if (menuItems.some(item => item.name === game.i18n.localize("MarkdownSheets.ExportButton") || item.icon?.includes("fa-markdown"))) {
       return;
     }
     
     menuItems.push({
       name: game.i18n.localize("MarkdownSheets.ExportButton"),
-      icon: '<i class="fas fa-file-markdown"></i>',
+      icon: '<i class="fab fa-markdown"></i>',
       callback: (target) => {
         console.log("Markdown Sheets | Actor context menu option clicked. Target element:", target);
         const actor = getActorFromContextTarget(target);
