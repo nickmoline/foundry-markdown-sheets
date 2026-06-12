@@ -76,12 +76,12 @@
         return `\n`;
       case 'STRONG':
       case 'B':
-        return `**${childrenContent}**`;
+        return childrenContent.trim() ? `**${childrenContent}**` : childrenContent;
       case 'EM':
       case 'I':
-        return `*${childrenContent}*`;
+        return childrenContent.trim() ? `*${childrenContent}*` : childrenContent;
       case 'CODE':
-        return `\`${childrenContent}\``;
+        return childrenContent.trim() ? `\`${childrenContent}\`` : childrenContent;
       case 'PRE':
         return `\n\`\`\`\n${childrenContent}\n\`\`\`\n`;
       case 'A': {
@@ -89,7 +89,7 @@
         if (!href || (!href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#'))) {
           return childrenContent;
         }
-        return `[${childrenContent}](${href})`;
+        return childrenContent.trim() ? `[${childrenContent}](${href})` : childrenContent;
       }
       case 'H1': return `\n# ${childrenContent}\n\n`;
       case 'H2': return `\n## ${childrenContent}\n\n`;
