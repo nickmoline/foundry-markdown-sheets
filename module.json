@@ -51,7 +51,7 @@
       }
     ]
   },
-  "esmodules": [
+  "scripts": [
     "scripts/markdown-exporter.js"
   ],
   "styles": [
