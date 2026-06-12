@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.0.2-alpha] - 2026-06-12
+### :sparkles: New Features
+- [`df5a2f5`](https://github.com/nickmoline/foundry-markdown-sheets/commit/df5a2f5b52faf34cba4fc2373a84ca15d80fa97f) - add actor image to markdown export and improve filename sanitization *(commit by [@nickmoline](https://github.com/nickmoline))*
+- [`b31edb9`](https://github.com/nickmoline/foundry-markdown-sheets/commit/b31edb95cc5e19b8e7ba6cd8afff0df89fcb6301) - add ApplicationV2 support and context menu integration for actor sheet exports *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+### :wrench: Chores
+- [`fe91604`](https://github.com/nickmoline/foundry-markdown-sheets/commit/fe9160464118bb102c4bc600d536023caafaa686) - Added gitignore file *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+
 ## [v0.0.1-alpha] - 2026-06-12
 ### :sparkles: New Features
 - [`118548c`](https://github.com/nickmoline/foundry-markdown-sheets/commit/118548c4d1f8896f8387c2287463289e22d7ee0c) - add multilingual localization support for character sheet exports *(commit by [@nickmoline](https://github.com/nickmoline))*
@@ -14,3 +23,4 @@ All notable changes to this project will be documented in this file.
 - [`4a62346`](https://github.com/nickmoline/foundry-markdown-sheets/commit/4a62346d11e026698a5b24d4e292d55e8e070b54) - fix changelog output variable in CI workflow and reset CHANGELOG.md content *(commit by [@nickmoline](https://github.com/nickmoline))*
 
 [v0.0.1-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.0...v0.0.1-alpha
+[v0.0.2-alpha]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.1-alpha...v0.0.2-alpha
