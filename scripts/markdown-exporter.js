@@ -397,20 +397,47 @@ class: ${escapeYamlString(classLine)}
 background: ${escapeYamlString(background)}
 alignment: ${escapeYamlString(alignment)}
 level: ${totalLevel}
-hp: ${hpVal} / ${hpMax}${hpTemp ? ` (Temp: ${hpTemp})` : ""}
+hp:
+  value: ${hpVal}
+  max: ${hpMax}
+  temp: ${hpTemp}
 ac: ${acVal}
 initiative: ${escapeYamlString(initMod)}
 speed: ${escapeYamlString(speedStr)}
 proficiency_bonus: ${escapeYamlString(profBonus)}
-senses: ${escapeYamlString(sensesStr)}
-languages: ${escapeYamlString(langStr)}
+senses: ${toYamlArray(sensesStr, 2)}
+languages: ${toYamlArray(langStr, 2)}
 abilities:
-  strength: ${escapeYamlString(ab.strength)}
-  dexterity: ${escapeYamlString(ab.dexterity)}
-  constitution: ${escapeYamlString(ab.constitution)}
-  intelligence: ${escapeYamlString(ab.intelligence)}
-  wisdom: ${escapeYamlString(ab.wisdom)}
-  charisma: ${escapeYamlString(ab.charisma)}
+  strength:
+    score: ${ab.strength.score}
+    modifier: ${escapeYamlString(ab.strength.modifier)}
+    saves: ${escapeYamlString(ab.strength.save)}
+    proficiency: ${escapeYamlString(ab.strength.proficiency)}
+  dexterity:
+    score: ${ab.dexterity.score}
+    modifier: ${escapeYamlString(ab.dexterity.modifier)}
+    saves: ${escapeYamlString(ab.dexterity.save)}
+    proficiency: ${escapeYamlString(ab.dexterity.proficiency)}
+  constitution:
+    score: ${ab.constitution.score}
+    modifier: ${escapeYamlString(ab.constitution.modifier)}
+    saves: ${escapeYamlString(ab.constitution.save)}
+    proficiency: ${escapeYamlString(ab.constitution.proficiency)}
+  intelligence:
+    score: ${ab.intelligence.score}
+    modifier: ${escapeYamlString(ab.intelligence.modifier)}
+    saves: ${escapeYamlString(ab.intelligence.save)}
+    proficiency: ${escapeYamlString(ab.intelligence.proficiency)}
+  wisdom:
+    score: ${ab.wisdom.score}
+    modifier: ${escapeYamlString(ab.wisdom.modifier)}
+    saves: ${escapeYamlString(ab.wisdom.save)}
+    proficiency: ${escapeYamlString(ab.wisdom.proficiency)}
+  charisma:
+    score: ${ab.charisma.score}
+    modifier: ${escapeYamlString(ab.charisma.modifier)}
+    saves: ${escapeYamlString(ab.charisma.save)}
+    proficiency: ${escapeYamlString(ab.charisma.proficiency)}
 ---
 
 # ${name}
@@ -644,6 +671,7 @@ ${getSkillsBlock(actor)}
     const acFormula = system.attributes?.ac?.formula ? ` (${system.attributes.ac.formula})` : "";
     const hpVal = system.attributes?.hp?.value ?? 0;
     const hpMax = system.attributes?.hp?.max ?? 0;
+    const hpTemp = system.attributes?.hp?.temp ?? 0;
     const hpFormula = system.attributes?.hp?.formula ? ` (${system.attributes.hp.formula})` : "";
     
     // Speed, Senses, Languages
@@ -666,18 +694,46 @@ xp: ${xp}
 size: ${escapeYamlString(size)}
 type_tags: ${escapeYamlString(npcType)}
 alignment: ${escapeYamlString(alignment)}
-hp: ${hpVal} / ${hpMax}${hpFormula ? ` ${hpFormula}` : ""}
+hp:
+  value: ${hpVal}
+  max: ${hpMax}
+  temp: ${hpTemp}
+  formula: ${escapeYamlString(system.attributes?.hp?.formula || "")}
 ac: ${acVal}${acFormula ? ` ${acFormula}` : ""}
 speed: ${escapeYamlString(speedStr)}
-senses: ${escapeYamlString(sensesStr)}
-languages: ${escapeYamlString(langStr)}
+senses: ${toYamlArray(sensesStr, 2)}
+languages: ${toYamlArray(langStr, 2)}
 abilities:
-  strength: ${escapeYamlString(ab.strength)}
-  dexterity: ${escapeYamlString(ab.dexterity)}
-  constitution: ${escapeYamlString(ab.constitution)}
-  intelligence: ${escapeYamlString(ab.intelligence)}
-  wisdom: ${escapeYamlString(ab.wisdom)}
-  charisma: ${escapeYamlString(ab.charisma)}
+  strength:
+    score: ${ab.strength.score}
+    modifier: ${escapeYamlString(ab.strength.modifier)}
+    saves: ${escapeYamlString(ab.strength.save)}
+    proficiency: ${escapeYamlString(ab.strength.proficiency)}
+  dexterity:
+    score: ${ab.dexterity.score}
+    modifier: ${escapeYamlString(ab.dexterity.modifier)}
+    saves: ${escapeYamlString(ab.dexterity.save)}
+    proficiency: ${escapeYamlString(ab.dexterity.proficiency)}
+  constitution:
+    score: ${ab.constitution.score}
+    modifier: ${escapeYamlString(ab.constitution.modifier)}
+    saves: ${escapeYamlString(ab.constitution.save)}
+    proficiency: ${escapeYamlString(ab.constitution.proficiency)}
+  intelligence:
+    score: ${ab.intelligence.score}
+    modifier: ${escapeYamlString(ab.intelligence.modifier)}
+    saves: ${escapeYamlString(ab.intelligence.save)}
+    proficiency: ${escapeYamlString(ab.intelligence.proficiency)}
+  wisdom:
+    score: ${ab.wisdom.score}
+    modifier: ${escapeYamlString(ab.wisdom.modifier)}
+    saves: ${escapeYamlString(ab.wisdom.save)}
+    proficiency: ${escapeYamlString(ab.wisdom.proficiency)}
+  charisma:
+    score: ${ab.charisma.score}
+    modifier: ${escapeYamlString(ab.charisma.modifier)}
+    saves: ${escapeYamlString(ab.charisma.save)}
+    proficiency: ${escapeYamlString(ab.charisma.proficiency)}
 ---
 
 # ${name}
@@ -886,6 +942,21 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     return `"${escaped}"`;
   }
 
+  function toYamlArray(str, indent = 2) {
+    if (!str || str === "None" || str === "none" || str === game.i18n.localize("MarkdownSheets.LabelNone")) {
+      return "[]";
+    }
+    const parts = str.split(",").map(s => s.trim()).filter(s => s.length > 0);
+    if (parts.length === 0) return "[]";
+    
+    const spaces = " ".repeat(indent);
+    let yaml = "\n";
+    for (const part of parts) {
+      yaml += `${spaces}- ${escapeYamlString(part)}\n`;
+    }
+    return yaml.trimEnd();
+  }
+
   function getSpecies(actor) {
     const raceItem = actor.items.find(i => i.type === "race" || i.type === "species");
     if (raceItem) return raceItem.name;
@@ -913,18 +984,25 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
   }
 
   function getSpeedString(actor) {
-    const speed = actor.system.attributes?.speed;
-    if (!speed) return "0 ft";
+    const movement = actor.system.attributes?.movement;
+    if (!movement) return "0 ft";
     
     const parts = [];
-    if (speed.walk) parts.push(`${speed.walk} ft (walk)`);
-    if (speed.fly) parts.push(`${speed.fly} ft (fly)${speed.hover ? ' (hover)' : ''}`);
-    if (speed.swim) parts.push(`${speed.swim} ft (swim)`);
-    if (speed.climb) parts.push(`${speed.climb} ft (climb)`);
-    if (speed.burrow) parts.push(`${speed.burrow} ft (burrow)`);
+    const units = movement.units || "ft";
     
-    if (parts.length === 0 && speed.value) {
-      return typeof speed.value === 'string' ? speed.value : `${speed.value} ft`;
+    if (movement.walk) parts.push(`${movement.walk} ${units} (walk)`);
+    if (movement.fly) parts.push(`${movement.fly} ${units} (fly)${movement.hover ? ' (hover)' : ''}`);
+    if (movement.swim) parts.push(`${movement.swim} ${units} (swim)`);
+    if (movement.climb) parts.push(`${movement.climb} ${units} (climb)`);
+    if (movement.burrow) parts.push(`${movement.burrow} ${units} (burrow)`);
+    
+    if (parts.length === 0 && movement.value) {
+      return typeof movement.value === 'string' ? movement.value : `${movement.value} ${units}`;
+    }
+    
+    // If walk exists but is the only speed, just return e.g. "30 ft" instead of "30 ft (walk)"
+    if (parts.length === 1 && movement.walk) {
+      return `${movement.walk} ${units}`;
     }
     
     return parts.join(", ") || "0 ft";
@@ -935,11 +1013,19 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     if (!senses) return game.i18n.localize("MarkdownSheets.LabelNone");
     
     const parts = [];
-    if (senses.darkvision) parts.push(`Darkvision ${senses.darkvision} ft`);
-    if (senses.blindsight) parts.push(`Blindsight ${senses.blindsight} ft`);
-    if (senses.tremorsense) parts.push(`Tremorsense ${senses.tremorsense} ft`);
-    if (senses.truesight) parts.push(`Truesight ${senses.truesight} ft`);
-    if (senses.special) parts.push(senses.special);
+    const darkvision = senses.darkvision || senses.ranges?.darkvision;
+    const blindsight = senses.blindsight || senses.ranges?.blindsight;
+    const tremorsense = senses.tremorsense || senses.ranges?.tremorsense;
+    const truesight = senses.truesight || senses.ranges?.truesight;
+    const special = senses.special;
+    
+    const units = senses.units || "ft";
+    
+    if (darkvision) parts.push(`Darkvision ${darkvision} ${units}`);
+    if (blindsight) parts.push(`Blindsight ${blindsight} ${units}`);
+    if (tremorsense) parts.push(`Tremorsense ${tremorsense} ${units}`);
+    if (truesight) parts.push(`Truesight ${truesight} ${units}`);
+    if (special) parts.push(special);
     
     const passivePer = actor.system.skills?.prc?.passive ?? 10;
     parts.push(`Passive Perception ${passivePer}`);
@@ -981,15 +1067,25 @@ ${imgMarkdown}*${size} ${npcType}, ${alignment}*
     for (const [key, name] of Object.entries(ABILITIES)) {
       const ab = abilities[key];
       if (!ab) {
-        result[name] = "10 (+0)";
+        result[name] = {
+          score: 10,
+          modifier: "+0",
+          save: "+0",
+          proficiency: "none"
+        };
         continue;
       }
       const val = ab.value || 10;
       const mod = formatMod(ab.mod || 0);
       const saveVal = getAbilitySaveValue(ab, actor);
       const saveMod = formatMod(saveVal);
-      const isProf = ab.proficient ? ` (${game.i18n.localize("DND5E.Proficient")})` : "";
-      result[name] = `${val} (${mod}, Save: ${saveMod}${isProf})`;
+      const proficiency = ab.proficient ? "proficient" : "none";
+      result[name] = {
+        score: val,
+        modifier: mod,
+        save: saveMod,
+        proficiency: proficiency
+      };
     }
     return result;
   }
