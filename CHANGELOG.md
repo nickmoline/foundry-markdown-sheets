@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.1.2] - 2026-06-12
+### :bug: Bug Fixes
+- [`b4fce4d`](https://github.com/nickmoline/foundry-markdown-sheets/commit/b4fce4d6e1962aff0b5854ef73edfa609c571128) - prevent empty markdown wrappers when children content contains only whitespace *(commit by [@nickmoline](https://github.com/nickmoline))*
+
+
 ## [v0.1.1] - 2026-06-12
 ### :bug: Bug Fixes
 - [`fdb636f`](https://github.com/nickmoline/foundry-markdown-sheets/commit/fdb636f951668f0353a4c7892ded4761286f1561) - strip invalid or non-external links in markdown exporter *(commit by [@nickmoline](https://github.com/nickmoline))*
@@ -62,3 +67,4 @@ All notable changes to this project will be documented in this file.
 [v0.0.5]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.4...v0.0.5
 [v0.1.0]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.0.5...v0.1.0
 [v0.1.1]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.1.0...v0.1.1
+[v0.1.2]: https://github.com/nickmoline/foundry-markdown-sheets/compare/v0.1.1...v0.1.2
