@@ -2,6 +2,7 @@
   "MarkdownSheets.ExportButton": "Exportar a Markdown",
   "MarkdownSheets.NotifyTypeWarning": "La exportación a Markdown solo es compatible con personajes jugadores y PNJ.",
   "MarkdownSheets.NotifySuccess": "¡Ficha de personaje exportada con éxito para {name}!",
+  "MarkdownSheets.NotifySuccessItem": "¡Objeto {name} exportado con éxito!",
   "MarkdownSheets.NotifyError": "Ocurrió un error al exportar la ficha a Markdown. Revisa los registros de la consola.",
   
   "MarkdownSheets.LabelCoreStats": "Estadísticas Principales",

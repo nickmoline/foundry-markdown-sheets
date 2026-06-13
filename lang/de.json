@@ -2,6 +2,7 @@
   "MarkdownSheets.ExportButton": "Markdown exportieren",
   "MarkdownSheets.NotifyTypeWarning": "Der Export in Markdown wird nur für Spielercharaktere und NPCs unterstützt.",
   "MarkdownSheets.NotifySuccess": "Charakterbogen für {name} erfolgreich exportiert!",
+  "MarkdownSheets.NotifySuccessItem": "Gegenstand {name} erfolgreich exportiert!",
   "MarkdownSheets.NotifyError": "Beim Exportieren des Bogen nach Markdown ist ein Fehler aufgetreten. Überprüfe die Konsolen-Logs.",
   
   "MarkdownSheets.LabelCoreStats": "Hauptwerte",

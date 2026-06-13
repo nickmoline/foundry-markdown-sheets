@@ -244,6 +244,67 @@
     Hooks.on(hookName, registerActorContextOptions);
   }
 
+  // Helper to retrieve Item from context menu target (handles raw DOM / jQuery targets)
+  function getItemFromContextTarget(target) {
+    if (!target) return null;
+    const el = target instanceof HTMLElement ? target : (target[0] || target);
+    if (!el) return null;
+    const itemId = el.dataset?.documentId || el.getAttribute?.("data-document-id") || el.dataset?.entryId;
+    return game.items.get(itemId);
+  }
+
+  // 5. Hook for ApplicationV1 (Legacy) Item directory context menu
+  Hooks.on("getItemDirectoryEntryContext", (html, entryOptions) => {
+    console.log("Markdown Sheets | getItemDirectoryEntryContext hook triggered");
+    entryOptions.push({
+      name: game.i18n.localize("MarkdownSheets.ExportButton"),
+      icon: '<i class="fab fa-markdown"></i>',
+      callback: (target) => {
+        const item = getItemFromContextTarget(target);
+        if (item) {
+          exportItemToMarkdown(item);
+        } else {
+          ui.notifications.warn(game.i18n.localize("MarkdownSheets.NotifyTypeWarning"));
+        }
+      }
+    });
+  });
+
+  // 6. Hook callback for ApplicationV2 (Modern) Item directory context menu (Foundry v13/v14)
+  const registerItemContextOptions = (application, menuItems) => {
+    console.log("Markdown Sheets | getItemContextOptions hook triggered. Current menuItems:", menuItems);
+    
+    // Avoid duplicates
+    if (menuItems.some(item => item.name === game.i18n.localize("MarkdownSheets.ExportButton") || item.icon?.includes("fa-markdown"))) {
+      return;
+    }
+    
+    menuItems.push({
+      name: game.i18n.localize("MarkdownSheets.ExportButton"),
+      icon: '<i class="fab fa-markdown"></i>',
+      callback: (target) => {
+        console.log("Markdown Sheets | Item context menu option clicked. Target element:", target);
+        const item = getItemFromContextTarget(target);
+        console.log("Markdown Sheets | Retrieved item from target:", item);
+        if (item) {
+          exportItemToMarkdown(item);
+        } else {
+          ui.notifications.warn(game.i18n.localize("MarkdownSheets.NotifyTypeWarning"));
+        }
+      }
+    });
+  };
+
+  const itemContextHooksToRegister = [
+    "getItemContextOptions",
+    "getItemDirectoryEntryContextOptions",
+    "getItemDirectoryContextOptions"
+  ];
+
+  for (const hookName of itemContextHooksToRegister) {
+    Hooks.on(hookName, registerItemContextOptions);
+  }
+
   /* ========================================================================= */
   /* CORE EXPORTER LOGIC                                                       */
   /* ========================================================================= */
@@ -272,6 +333,118 @@
       console.error("Markdown Exporter | Error exporting actor sheet:", error);
       ui.notifications.error(game.i18n.localize("MarkdownSheets.NotifyError"));
     }
+  }
+
+  /**
+   * Main function to export Item document to Markdown and download it.
+   * @param {Item} item - The item document.
+   */
+  async function exportItemToMarkdown(item) {
+    try {
+      const markdown = await generateItemMarkdown(item);
+      const cleanName = item.name.replace(/[\\/:*?"<>|]/g, "");
+      const filename = `${cleanName}.md`;
+      downloadMarkdown(filename, markdown);
+      ui.notifications.info(game.i18n.format("MarkdownSheets.NotifySuccessItem", { name: item.name }));
+    } catch (error) {
+      console.error("Markdown Exporter | Error exporting item:", error);
+      ui.notifications.error(game.i18n.localize("MarkdownSheets.NotifyError"));
+    }
+  }
+
+  /**
+   * Generates Markdown for a single Item.
+   * @param {Item} item - The item document.
+   * @returns {string} Fully formatted markdown content.
+   */
+  async function generateItemMarkdown(item) {
+    const system = item.system || {};
+    const name = item.name || "";
+    const imgUrl = item.img;
+    const imgMarkdown = imgUrl ? `![${name}](${imgUrl})\n\n` : "";
+    
+    // Determine localized type label
+    let typeLabel = item.type;
+    const typeKey = `ITEM.Type${item.type.charAt(0).toUpperCase() + item.type.slice(1)}`;
+    if (game.i18n && typeof game.i18n.has === "function" && game.i18n.has(typeKey)) {
+      typeLabel = game.i18n.localize(typeKey);
+    } else {
+      typeLabel = item.type.charAt(0).toUpperCase() + item.type.slice(1);
+    }
+    
+    let md = `# ${name}\n\n`;
+    md += imgMarkdown;
+    
+    md += `- **${game.i18n.localize("MarkdownSheets.LabelType") || "Type"}:** ${typeLabel}\n`;
+    
+    // Type-specific properties
+    if (item.type === "spell") {
+      const activation = system.activation ? `${system.activation.cost || ""} ${system.activation.type || ""}`.trim() : "";
+      const sRange = system.range ? `${system.range.value || ""} ${system.range.units || ""}`.trim() : "";
+      const components = getSpellProperties(item);
+      const duration = system.duration ? `${system.duration.value || ""} ${system.duration.units || ""}`.trim() : "";
+      const schoolKey = system.school;
+      const school = CONFIG.DND5E?.spellSchools?.[schoolKey]?.label ? game.i18n.localize(CONFIG.DND5E.spellSchools[schoolKey].label) : (schoolKey || "");
+      const level = system.level ?? 0;
+      
+      let levelStr = "";
+      if (level === 0) {
+        levelStr = game.i18n.localize("MarkdownSheets.LabelCantrips") || "Cantrip";
+      } else {
+        levelStr = game.i18n.format ? game.i18n.format("MarkdownSheets.LabelLevelSpells", { level: level }) : `${level} Level`;
+      }
+      
+      md += `- **${game.i18n.localize("DND5E.SpellLevel") || "Level"}:** ${levelStr}\n`;
+      md += `- **${game.i18n.localize("MarkdownSheets.LabelSchool") || "School"}:** ${school}\n`;
+      md += `- **${game.i18n.localize("MarkdownSheets.LabelCastingTime") || "Casting Time"}:** ${activation}\n`;
+      md += `- **${game.i18n.localize("MarkdownSheets.LabelRange") || "Range"}:** ${sRange}\n`;
+      md += `- **${game.i18n.localize("MarkdownSheets.LabelComponents") || "Components"}:** ${components}\n`;
+      md += `- **${game.i18n.localize("MarkdownSheets.LabelDuration") || "Duration"}:** ${duration}\n`;
+    } else if (["weapon", "equipment", "tool", "consumable", "container", "loot"].includes(item.type)) {
+      const qty = system.quantity ?? 1;
+      const wt = system.weight ?? 0;
+      let rarity = "";
+      if (system.rarity) {
+        const rObj = CONFIG.DND5E?.itemRarities?.[system.rarity];
+        rarity = typeof rObj === "string" ? rObj : (rObj?.label ? game.i18n.localize(rObj.label) : system.rarity);
+      }
+      const attunement = system.attunement ? (CONFIG.DND5E?.attunements?.[system.attunement] || system.attunement) : "";
+      
+      let priceStr = "";
+      if (system.price) {
+        if (typeof system.price === "object") {
+          priceStr = `${system.price.value || 0} ${system.price.denomination || ""}`.trim();
+        } else {
+          priceStr = String(system.price);
+        }
+      }
+      
+      const props = getItemProperties(item);
+      
+      md += `- **${game.i18n.localize("MarkdownSheets.LabelQuantity") || "Quantity"}:** ${qty}\n`;
+      md += `- **${game.i18n.localize("MarkdownSheets.LabelWeight") || "Weight"}:** ${wt} lbs\n`;
+      if (priceStr) md += `- **${game.i18n.localize("DND5E.Price") || "Price"}:** ${priceStr}\n`;
+      if (rarity) md += `- **${game.i18n.localize("DND5E.Rarity") || "Rarity"}:** ${rarity}\n`;
+      if (attunement) md += `- **${game.i18n.localize("DND5E.Attunement") || "Attunement"}:** ${attunement}\n`;
+      if (props) md += `- **${game.i18n.localize("MarkdownSheets.LabelProperties") || "Properties"}:** ${props}\n`;
+    } else if (item.type === "feat") {
+      const requirements = system.requirements || "";
+      if (requirements) {
+        md += `- **${game.i18n.localize("DND5E.Requirements") || "Requirements"}:** ${requirements}\n`;
+      }
+    } else if (item.type === "class" || item.type === "subclass") {
+      const identifier = system.identifier || "";
+      if (identifier) {
+        md += `- **Identifier:** ${identifier}\n`;
+      }
+    }
+    
+    // Description
+    md += `\n## ${game.i18n.localize("MarkdownSheets.LabelBiographyDescription") || "Description"}\n`;
+    const enrichedDesc = await formatItemDescription(item, null);
+    md += `${enrichedDesc}\n`;
+    
+    return md;
   }
 
   /**

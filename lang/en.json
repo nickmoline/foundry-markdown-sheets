@@ -2,6 +2,7 @@
   "MarkdownSheets.ExportButton": "Export Markdown",
   "MarkdownSheets.NotifyTypeWarning": "Exporting to Markdown is only supported for Player Characters and NPCs.",
   "MarkdownSheets.NotifySuccess": "Successfully exported character sheet for {name}!",
+  "MarkdownSheets.NotifySuccessItem": "Successfully exported item {name}!",
   "MarkdownSheets.NotifyError": "An error occurred while exporting the sheet to Markdown. Check console logs.",
   
   "MarkdownSheets.LabelCoreStats": "Core Stats",
